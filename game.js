@@ -26,17 +26,29 @@ class Player {
     ctx.fill();
   }
   moveUp() {
-    if (this.y > 0) this.y -= this.speed;
+    this.y -= this.speed;
+    if (this.y < 0) this.y = 0;
   }
+  
   moveDown() {
-    if (this.y + this.height < canvas.height) this.y += this.speed;
+    this.y += this.speed;
+    if (this.y + this.height > canvas.height) {
+      this.y = canvas.height - this.height;
+    }
   }
+  
   moveLeft() {
-    if (this.x > 0) this.x -= this.speed;
+    this.x -= this.speed;
+    if (this.x < 0) this.x = 0;
   }
+  
   moveRight() {
-    if (this.x + this.width < canvas.width) this.x += this.speed;
+    this.x += this.speed;
+    if (this.x + this.width > canvas.width) {
+      this.x = canvas.width - this.width;
+    }
   }
+  
 }
 
 class Bullet {
@@ -87,13 +99,17 @@ let musuhh = [];
 let score = 0;
 let lives = 5;
 let keys = {};
+let lastShotTime = 0;
+const bulletCooldown = 300; // dalam milidetik
 
 document.addEventListener("keydown", (e) => {
   keys[e.key] = true;
 
-  if (e.key === " ") {
+  const currentTime = Date.now();
+  if (e.key === " " && currentTime - lastShotTime > bulletCooldown) {
     if (!isPaused) {
       bullets.push(new Bullet(player.x + player.width / 2, player.y));
+      lastShotTime = currentTime;
     }
   }
 
@@ -129,11 +145,27 @@ function updateGame() {
     musuh.update();
     musuh.draw();
 
+    // jika player kena tabrak musuh
+    if (
+      player.x < musuh.x + musuh.size &&
+      player.x + player.width > musuh.x &&
+      player.y < musuh.y + musuh.size &&
+      player.y + player.height > musuh.y
+    ) {
+      // jika ketabrak langsung game over y
+      lives = 0;
+      gameOverPopup.style.display = "block";
+      finalScore.innerHTML = "Score: " + score;
+      return; // stop loop musuh dan gameover
+    }
+
+    // musuh sampe kiri = hearts berkurang
     if (musuh.x + musuh.size < 0) {
       musuhh.splice(eIndex, 1);
       lives--;
     }
 
+    // validasi peluru kena musuh
     bullets.forEach((bullet, bIndex) => {
       if (
         bullet.x < musuh.x + musuh.size &&
@@ -156,11 +188,18 @@ function updateGame() {
   if (lives <= 0) {
     gameOverPopup.style.display = "block";
     finalScore.innerHTML = "Score: " + score;
+  
+    clearInterval(musuhSpawner);
+  
+    musuhh = [];
+  
     return;
   }
+  
 
   requestAnimationFrame(updateGame);
 }
+
 
 function spawnMusuh() {
   if (!isPaused) {
@@ -173,8 +212,15 @@ replayButton.addEventListener("click", () => {
 });
 
 outButton.addEventListener("click", () => {
-  window.close();
+  window.close(); 
+
+  setTimeout(() => {
+    if (!window.closed) {
+      alert("Silakan tutup tab ini secara manual. Browser tidak mengizinkan halaman ini untuk menutup tab secara otomatis.");
+    }
+  }, 100); 
 });
+
 
 setInterval(spawnMusuh, 1500);
 updateGame();
