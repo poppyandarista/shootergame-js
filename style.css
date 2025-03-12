@@ -1,0 +1,66 @@
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: white;
+  position: relative;
+}
+
+canvas {
+  background: url("bgmalam.png") no-repeat center center;
+  background-size: cover;
+  display: block;
+  border: 2px solid black;
+}
+
+.popup {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 400px;
+  background: url("score.png") no-repeat center center;
+  background-size: cover;
+  text-align: center;
+  padding: 20px;
+}
+
+.popup h2 {
+  margin-top: 100px;
+  font-family: "Press Start 2P", cursive;
+  font-size: 20px;
+  color: white;
+}
+
+.score-text {
+  font-size: 25px;
+  color: white;
+  font-family: "Press Start 2P", cursive;
+}
+
+.btn-container {
+  margin-top: 20px;
+}
+
+.btn-container button {
+  font-family: "Press Start 2P", cursive;
+  font-size: 16px;
+  padding: 10px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+.pause-text {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "Press Start 2P", cursive;
+  font-size: 24px;
+  color: red;
+  display: none;
+}
