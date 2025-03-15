@@ -16,6 +16,22 @@ const pauseText = document.getElementById("pauseText");
 let isPaused = false;
 let gameEnded = false;
 
+const soundShoot = new Audio('shoot.wav');
+const soundEnemyHit = new Audio('spawn.mp3');
+const soundPlayerDead = new Audio('gameover.mp3');
+const soundWin = new Audio('win.mp3');
+const soundClick = new Audio('selectbutton.mp3');
+const bgmMusic = new Audio('bgm-arcade.mp3');
+
+soundShoot.volume = 0.9;
+soundEnemyHit.volume = 0.8;
+soundPlayerDead.volume = 1.0;
+soundWin.volume = 1.0;
+soundClick.volume = 0.5;
+
+bgmMusic.loop = true;
+bgmMusic.volume = 0.4;
+
 const playerImage = new Image();
 playerImage.src = 'player_biru.png'; 
 
@@ -34,7 +50,7 @@ class Player {
     this.height = 80;
     this.x = 50;
     this.y = canvas.height / 2;
-    this.speed = 3;
+    this.speed = 5;
   }
 
   draw() {
@@ -48,7 +64,9 @@ class Player {
 
   moveDown() {
     this.y += this.speed;
-    if (this.y > canvas.height - this.height / 2) this.y = canvas.height - this.height / 2;
+    if (this.y > canvas.height - this.height / 2) {
+      this.y = canvas.height - this.height / 2;
+    }
   }
 
   moveLeft() {
@@ -58,7 +76,9 @@ class Player {
 
   moveRight() {
     this.x += this.speed;
-    if (this.x > canvas.width - this.width / 2) this.x = canvas.width - this.width / 2;
+    if (this.x > canvas.width - this.width / 2) {
+      this.x = canvas.width - this.width / 2;
+    }
   }
 }
 
@@ -68,7 +88,7 @@ class Bullet {
     this.y = y;
     this.width = 10;
     this.height = 4;
-    this.speed = 5;
+    this.speed = 7;
   }
 
   draw() {
@@ -116,19 +136,27 @@ let keys = {};
 let lastShotTime = 0;
 const bulletCooldown = 300;
 const hitboxPadding = 20;
+
 document.addEventListener("keydown", (e) => {
   keys[e.key] = true;
 
   const currentTime = Date.now();
   if (e.key === " " && currentTime - lastShotTime > bulletCooldown && !isPaused && !gameEnded) {
     bullets.push(new Bullet(player.x + player.width / 2, player.y));
+    soundShoot.currentTime = 0;
+    soundShoot.play();
     lastShotTime = currentTime;
   }
 
-  if (e.key.toLowerCase() === "q" && !gameEnded) {
+  if (e.key.toLowerCase() === "p" && !gameEnded) {
     isPaused = !isPaused;
     pauseText.style.display = isPaused ? "block" : "none";
     if (!isPaused) updateGame();
+  }
+
+  if (e.key.toLowerCase() === "m") {
+    bgmMusic.muted = !bgmMusic.muted;
+    console.log(bgmMusic.muted ? "BGM Muted" : "BGM Unmuted");
   }
 });
 
@@ -138,6 +166,10 @@ document.addEventListener("keyup", (e) => {
 
 function updateGame() {
   if (isPaused || gameEnded) return;
+
+  if (bgmMusic.paused) {
+    bgmMusic.play();
+  }
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -173,7 +205,8 @@ function updateGame() {
     const musuhTop = musuh.y + hitboxPadding;
     const musuhBottom = musuh.y + musuh.size - hitboxPadding;
 
-    if (playerLeft < musuhRight && playerRight > musuhLeft && playerTop < musuhBottom && playerBottom > musuhTop) {
+    if (playerLeft < musuhRight && playerRight > musuhLeft &&
+        playerTop < musuhBottom && playerBottom > musuhTop) {
       gameOver();
       return;
     }
@@ -184,11 +217,16 @@ function updateGame() {
     }
 
     bullets.forEach((bullet, bIndex) => {
-      if (bullet.x < musuh.x + musuh.size && bullet.x + bullet.width > musuh.x &&
-          bullet.y < musuh.y + musuh.size && bullet.y + bullet.height > musuh.y) {
+      if (bullet.x < musuh.x + musuh.size &&
+          bullet.x + bullet.width > musuh.x &&
+          bullet.y < musuh.y + musuh.size &&
+          bullet.y + bullet.height > musuh.y) {
         bullets.splice(bIndex, 1);
         musuhh.splice(eIndex, 1);
         score++;
+
+        soundEnemyHit.currentTime = 0;
+        soundEnemyHit.play();
       }
     });
   });
@@ -210,6 +248,13 @@ function winGame() {
   gameEnded = true;
   youWinPopup.style.display = "block";
   winScore.innerText = "Score: " + score;
+
+  soundWin.currentTime = 0;
+  soundWin.play();
+
+  bgmMusic.pause();
+  bgmMusic.currentTime = 0;
+
   clearInterval(musuhSpawner);
 }
 
@@ -217,6 +262,13 @@ function gameOver() {
   gameEnded = true;
   gameOverPopup.style.display = "block";
   finalScore.innerText = "Score: " + score;
+
+  soundPlayerDead.currentTime = 0;
+  soundPlayerDead.play();
+
+  bgmMusic.pause();
+  bgmMusic.currentTime = 0;
+
   clearInterval(musuhSpawner);
 }
 
@@ -227,11 +279,29 @@ function spawnMusuh() {
   }
 }
 
-replayButton.addEventListener("click", () => location.reload());
-outButton.addEventListener("click", () => window.close());
+replayButton.addEventListener("click", () => {
+  soundClick.currentTime = 0;
+  soundClick.play();
+  setTimeout(() => location.reload(), 300);
+});
 
-replayWinButton.addEventListener("click", () => location.reload());
-quitWinButton.addEventListener("click", () => window.close());
+outButton.addEventListener("click", () => {
+  soundClick.currentTime = 0;
+  soundClick.play();
+  setTimeout(() => window.close(), 300);
+});
+
+replayWinButton.addEventListener("click", () => {
+  soundClick.currentTime = 0;
+  soundClick.play();
+  setTimeout(() => location.reload(), 300);
+});
+
+quitWinButton.addEventListener("click", () => {
+  soundClick.currentTime = 0;
+  soundClick.play();
+  setTimeout(() => window.close(), 300);
+});
 
 const musuhSpawner = setInterval(spawnMusuh, 1500);
 updateGame();
